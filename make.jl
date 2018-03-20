@@ -13,14 +13,14 @@ end
 
 # Build docker image from Dockerfile.
 function build()
-    run(`docker build -t latexlambda .`)
+    run(`docker build -t octech/lambdalatex .`)
 end
 
 
 # Create Lambda deployment .ZIP file from docker image.
 function zip()
     rm("latexlambda.zip", force=true)
-    run(`docker run --rm -it -v $(pwd()):/var/host latexlambda zip --symlinks -r -9 /var/host/latexlambda.zip .`)
+    run(`docker run --rm -it -v $(pwd()):/var/host octech/lambdalatex zip --symlinks -r -9 /var/host/latexlambda.zip .`)
 end
 
 
@@ -39,7 +39,7 @@ end
 
 # Docker image interactive shell.
 function shell()
-    run(`docker run --rm -it -v $(pwd()):/var/host latexlambda bash`)
+    run(`docker run --rm -it -v $(pwd()):/var/host octech/lambdalatex bash`)
 end
 
 
@@ -54,7 +54,7 @@ function localtest()
         with open('/var/host/test_output.json', 'w') as f:
             f.write(json.dumps(out))
         """
-    run(`docker run --rm -v $(pwd()):/var/host latexlambda python3 -c $pycmd`)
+    run(`docker run --rm -v $(pwd()):/var/host octech/lambdalatex python3 -c $pycmd`)
     out = JSON.parse(readstring("test_output.json"))
     write("test_output_local.pdf", base64decode(out["output"]))
     write("test_output_local.stdout", out["stdout"])
@@ -64,7 +64,6 @@ end
 # Test latex on Lambda.
 function test()
     out = invoke_lambda("latex", Dict("input" => readstring("test_input.tex")))
-    pdf = base64decode(out[:output])
     write("test_output_lambda.pdf", base64decode(out[:output]))
     write("test_output_lambda.stdout", out[:stdout])
 end
