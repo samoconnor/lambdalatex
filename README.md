@@ -29,8 +29,8 @@ The build script will:
  - Create a local docker image `octech/lambdalatex` containing a small Tex Live
    installation.
  - Package the Tex Live installation into a `latexlambda.zip` file.
- - Deploy the `.zip` ans an AWS Lambda Function named "latex".
- - Call the Lambda Function, passing `test_input.tex` as input and saving
+ - Deploy the `.zip` as an AWS Lambda Function named "latex".
+ - Invoke the Lambda Function, passing `test_input.tex` as input and saving
    the output to `test_output_lambda.pdf`
 
 
@@ -59,6 +59,7 @@ $ aws lambda invoke --function-name latex --payload '{
       "input": "\\documentclass[11pt,letterpaper]{article}\n\\begin{document}\nHello World!\n\\end{document}\n"
     }' output.json
 end
+```
 
 
 Using Julia:
