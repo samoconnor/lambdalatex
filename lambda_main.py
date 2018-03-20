@@ -8,6 +8,9 @@ def main(event, context):
     with open('/tmp/document.tex', 'w') as f:
         f.write(event["input"])
 
+    os.environ['PATH'] += ":/var/task/texlive/2017/bin/x86_64-linux/"
+    os.environ['HOME'] = '/tmp/'
+
     # Run pdflatex...
     r = subprocess.run(["/var/task/texlive/2017/bin/x86_64-linux/pdflatex",
                         "-interaction=batchmode",
