@@ -15,8 +15,12 @@ RUN tar xf install*.tar.gz
 RUN cd install-tl-* && \
     ./install-tl --profile ../texlive.profile
 
-ENV PATH=/var/task/texlive/2017/bin/x86_64-linux:$PATH
+
+FROM lambci/lambda:build-python3.6
+
+ENV PATH=/var/task/texlive/2017/bin/x86_64-linux/:$PATH
+
+COPY --from=0 /var/task/ /var/task/
+COPY lambda_main.py /var/task
 
 WORKDIR /var/task
-
-COPY lambda_main.py /var/task

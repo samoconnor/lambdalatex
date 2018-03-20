@@ -8,11 +8,11 @@ TEXMFSYSVAR /var/task/texlive/2017/texmf-var
 TEXMFVAR ~/.texlive2017/texmf-var
 binary_x86_64-linux 1
 collection-basic 1
-collection-langenglish 1
+#collection-langenglish 1
 collection-latex 1
 collection-latexrecommended 1
-collection-metapost 1
-collection-xetex 1
+#collection-metapost 1
+#collection-xetex 1
 instopt_adjustpath 0
 instopt_adjustrepo 1
 instopt_letter 0
