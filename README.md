@@ -1,5 +1,11 @@
 # Latex TeX Live for AWS Lambda
 
+AWS Lambda imposes a 50MB limit on `.zip` deployment archives.
+To reduce the size of Tex Live, most optional packages have been disabled in
+`texlive.profile`. If you require additional packages you will have to
+modify the `Dockerfile` to add the required packages using
+[`tlmgr`](https://www.tug.org/texlive/pkginstall.html).
+
 
 ## Prerequisites
 
