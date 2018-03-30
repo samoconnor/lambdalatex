@@ -4,6 +4,7 @@ using JSON
 using AWSCore
 using AWSS3
 using AWSLambda
+using InfoZIP
 
 function all()
     build()
@@ -48,15 +49,15 @@ function shell()
     run(`docker run --rm -it -v $(pwd()):/var/host octech/lambdalatex bash`)
 end
 
+test_zip = base64encode(create_zip("document.tex" =>
+                                   readstring("test_input.tex")))
 
 # Test latex in local docker image.
 function localtest()
     pycmd = """
         import lambda_main
         import json
-        out = lambda_main.main({'input': '''
-            $(escape_string(readstring("test_input.tex")))
-        '''}, {})
+        out = lambda_main.main({'input': '$test_zip'}, {})
         with open('/var/host/test_output.json', 'w') as f:
             f.write(json.dumps(out))
         """
@@ -69,7 +70,7 @@ end
 
 # Test latex on Lambda.
 function test()
-    out = invoke_lambda("latex"; input=readstring("test_input.tex"))
+    out = invoke_lambda("latex"; input=test_zip)
     write("test_output_lambda.pdf", base64decode(out[:output]))
     write("test_output_lambda.stdout", out[:stdout])
 end
