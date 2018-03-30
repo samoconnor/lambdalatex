@@ -1,6 +1,8 @@
 module MakeLatexLambda
 
 using JSON
+using AWSCore
+using AWSS3
 using AWSLambda
 
 function all()
@@ -26,13 +28,17 @@ end
 
 # Deploy .ZIP file to Lambda.
 function deploy()
+    AWSCore.set_debug_level(2)
+    aws = AWSCore.default_aws_config()
+    n = AWSCore.aws_account_number(aws)
+    aws[:lambda_bucket] = "octech.latexlambda.deploy.$n"
+    s3_create_bucket(aws[:lambda_bucket])
+    s3_put(aws[:lambda_bucket], "latexlambda.zip", read("latexlambda.zip"))
     if lambda_configuration("latex") == nothing
-        create_lambda("latex";
-                      ZipFile=read("latexlambda.zip"),
-                      Runtime="python3.6")
+        create_lambda(aws, "latex"; Runtime="python3.6",
+                                    S3Key="latexlambda.zip")
     else
-        update_lambda("latex";
-                      ZipFile=read("latexlambda.zip"))
+        update_lambda(aws, "latex"; S3Key="latexlambda.zip")
     end
 end
 
@@ -63,7 +69,7 @@ end
 
 # Test latex on Lambda.
 function test()
-    out = invoke_lambda("latex", Dict("input" => readstring("test_input.tex")))
+    out = invoke_lambda("latex"; input=readstring("test_input.tex"))
     write("test_output_lambda.pdf", base64decode(out[:output]))
     write("test_output_lambda.stdout", out[:stdout])
 end
