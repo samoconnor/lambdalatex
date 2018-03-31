@@ -77,13 +77,13 @@ using InfoZIP
 
 z = base64encode(create_zip("document.tex" =>
                             """
-                            \documentclass[11pt,letterpaper]{article}
-                            \begin{document}
+                            \\documentclass[11pt,letterpaper]{article}
+                            \\begin{document}
                             Hello World!
-                            \end{document}
-                            """
+                            \\end{document}
+                            """))
 
-out = invoke_lambda("latex", input=z)
+out = invoke_lambda("latex"; input=z)
 write("test_output_lambda.pdf", base64decode(out[:output]))
 write("test_output_lambda.stdout", out[:stdout])
 ```
