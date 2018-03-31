@@ -42,10 +42,11 @@ The build script will:
 
 ## Interface
 
-The input to the "latex" lambda function is a tex document wrapped in JSON:
+The input to the "latex" lambda function is a base-64 encoded .ZIP file
+containing `document.tex` and any required supporting files (images etc).
 
     {
-      "input": "\\documentclass[11pt,letterpaper]{article}\n\\begin{document}\nHello World!\n\\end{document}\n"
+      "input": "JVBERi0xLjUKJdD ...",
     }
 
 The output contains a base64 encoded PDF file and debug messages:
@@ -61,10 +62,10 @@ The output contains a base64 encoded PDF file and debug messages:
 Using the AWS CLI:
 
 ```bash
-$ aws lambda invoke --function-name latex --payload '{
-      "input": "\\documentclass[11pt,letterpaper]{article}\n\\begin{document}\nHello World!\n\\end{document}\n"
-    }' output.json
-end
+$ aws lambda invoke --function-name latex --payload "{
+      \"input\": \"$(base64 < input.zip)\"
+    }" output.json
+$ cat output.json
 ```
 
 
@@ -72,7 +73,17 @@ Using Julia:
 
 ```julia
 using AWSLambda
-out = invoke_lambda("latex", Dict("input" => readstring("test_input.tex")))
+using InfoZIP
+
+z = base64encode(create_zip("document.tex" =>
+                            """
+                            \documentclass[11pt,letterpaper]{article}
+                            \begin{document}
+                            Hello World!
+                            \end{document}
+                            """
+
+out = invoke_lambda("latex", input=z)
 write("test_output_lambda.pdf", base64decode(out[:output]))
 write("test_output_lambda.stdout", out[:stdout])
 ```
