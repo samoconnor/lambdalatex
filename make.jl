@@ -3,7 +3,7 @@ module MakeLatexLambda
 using JSON
 using AWSCore
 using AWSS3
-#using AWSLambda
+using AWSLambda
 using InfoZIP
 
 function all()
@@ -62,10 +62,13 @@ test_zip = base64encode(create_zip("document.tex" =>
 
 # Test latex in local docker image.
 function localtest()
+    write("test_input.zip.base64", test_zip)
     pycmd = """
         import lambda_function
         import json
-        out = lambda_function.lambda_handler({'input': '$test_zip'}, {})
+        import base64
+        out = lambda_function.lambda_handler(
+              {'input': open('/var/host/test_input.zip.base64').read()}, {})
         with open('/var/host/test_output.json', 'w') as f:
             f.write(json.dumps(out))
         """

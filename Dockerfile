@@ -62,6 +62,9 @@ RUN tlmgr install xcolor \
                   helvetic \
                   charter
 
+# Install latexmk.
+RUN tlmgr install latexmk
+
 # Remove LuaTeX.
 RUN tlmgr remove --force luatex
 
@@ -70,12 +73,19 @@ RUN rm -rf /var/task/texlive/2017/tlpkg/texlive.tlpdb* \
            /var/task/texlive/2017/texmf-dist/source/latex/koma-script/doc \
            /var/task/texlive/2017/texmf-dist/doc 
 
+RUN mkdir -p /var/task/texlive/2017/tlpkg/TeXLive/Digest/ && \
+    mkdir -p /var/task/texlive/2017/tlpkg/TeXLive/auto/Digest/MD5/ && \
+    cp /usr/lib64/perl5/vendor_perl/Digest/MD5.pm \
+       /var/task/texlive/2017/tlpkg/TeXLive/Digest/ && \
+    cp /usr/lib64/perl5/vendor_perl/auto/Digest/MD5/MD5.so \
+       /var/task/texlive/2017/tlpkg/TeXLive/auto/Digest/MD5
 
 FROM lambci/lambda:build-python3.6
 
 WORKDIR /var/task
 
 ENV PATH=/var/task/texlive/2017/bin/x86_64-linux/:$PATH
+ENV PERL5LIB=/var/task/texlive/2017/tlpkg/TeXLive/
 
 COPY --from=0 /var/task/ /var/task/
 COPY lambda_function.py /var/task

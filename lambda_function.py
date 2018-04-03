@@ -15,17 +15,20 @@ def lambda_handler(event, context):
 
     os.environ['PATH'] += ":/var/task/texlive/2017/bin/x86_64-linux/"
     os.environ['HOME'] = "/tmp/latex/"
+    os.environ['PERL5LIB'] = "/var/task/texlive/2017/tlpkg/TeXLive/"
+
     os.chdir("/tmp/latex/")
 
     # Run pdflatex...
-    for i in [1, 2]:
-        r = subprocess.run(["/var/task/texlive/2017/bin/x86_64-linux/pdflatex",
-                            "-interaction=batchmode",
-                            "-output-directory=/tmp/latex",
-                            "document.tex"],
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.STDOUT)
-        print(r.stdout.decode('utf_8'))
+    r = subprocess.run(["latexmk",
+                        "-verbose",
+                        "-interaction=batchmode",
+                        "-pdf",
+                        "-output-directory=/tmp/latex",
+                        "document.tex"],
+                       stdout=subprocess.PIPE,
+                       stderr=subprocess.STDOUT)
+    print(r.stdout.decode('utf_8'))
 
     # Read "document.pdf"...
     with open("document.pdf", "rb") as f:
