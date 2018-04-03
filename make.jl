@@ -3,14 +3,22 @@ module MakeLatexLambda
 using JSON
 using AWSCore
 using AWSS3
-using AWSLambda
+#using AWSLambda
 using InfoZIP
 
 function all()
+    download()
     build()
     zip()
     deploy()
     test()
+end
+
+
+# Download TeXLive installer.
+function download()
+    run(`wget
+         http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz`)
 end
 
 
@@ -55,9 +63,9 @@ test_zip = base64encode(create_zip("document.tex" =>
 # Test latex in local docker image.
 function localtest()
     pycmd = """
-        import lambda_main
+        import lambda_function
         import json
-        out = lambda_main.main({'input': '$test_zip'}, {})
+        out = lambda_function.lambda_handler({'input': '$test_zip'}, {})
         with open('/var/host/test_output.json', 'w') as f:
             f.write(json.dumps(out))
         """

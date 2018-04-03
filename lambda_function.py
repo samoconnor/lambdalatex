@@ -5,7 +5,7 @@ import subprocess
 import base64
 import zipfile
 
-def main(event, context):
+def lambda_handler(event, context):
     
     # Extract input ZIP file to /tmp/latex...
     shutil.rmtree("/tmp/latex", ignore_errors=True)

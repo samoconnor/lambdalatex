@@ -8,7 +8,8 @@ RUN mkdir /var/src
 WORKDIR /var/src
 
 # Download TeXLive installer.
-ADD http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz /var/src/
+#ADD http://mirror.ctan.org/systems/texlive/tlnet/install-tl-unx.tar.gz /var/src/
+COPY install-tl-unx.tar.gz /var/src/
 
 # Minimal TeXLive configuration profile.
 COPY texlive.profile /var/src/
@@ -17,6 +18,7 @@ COPY texlive.profile /var/src/
 RUN tar xf install*.tar.gz
 RUN cd install-tl-* && \
     ./install-tl --profile ../texlive.profile
+
 
 ENV PATH=/var/task/texlive/2017/bin/x86_64-linux/:$PATH
 
@@ -60,11 +62,13 @@ RUN tlmgr install xcolor \
                   helvetic \
                   charter
 
+# Remove LuaTeX.
+RUN tlmgr remove --force luatex
+
 # Remove large unneeded files.
-RUN rm -rf /var/task/texlive/2017/bin/x86_64-linux/lua* \
-           /var/task/texlive/2017/tlpkg/texlive.tlpdb* \
+RUN rm -rf /var/task/texlive/2017/tlpkg/texlive.tlpdb* \
            /var/task/texlive/2017/texmf-dist/source/latex/koma-script/doc \
-           /var/task/texlive/2017/texmf-dist/doc
+           /var/task/texlive/2017/texmf-dist/doc 
 
 
 FROM lambci/lambda:build-python3.6
@@ -74,4 +78,4 @@ WORKDIR /var/task
 ENV PATH=/var/task/texlive/2017/bin/x86_64-linux/:$PATH
 
 COPY --from=0 /var/task/ /var/task/
-COPY lambda_main.py /var/task
+COPY lambda_function.py /var/task
