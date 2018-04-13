@@ -3,7 +3,7 @@ module MakeLatexLambda
 using JSON
 using AWSCore
 using AWSS3
-using AWSLambda
+using AWSLambda: create_lambda, update_lambda, lambda_configuration
 using InfoZIP
 
 function all()
@@ -45,7 +45,8 @@ function deploy()
     s3_put(aws[:lambda_bucket], "latexlambda.zip", read("latexlambda.zip"))
     if lambda_configuration("latex") == nothing
         create_lambda(aws, "latex"; Runtime="python3.6",
-                                    S3Key="latexlambda.zip")
+                                    S3Key="latexlambda.zip",
+                                    MemorySize=1536)
     else
         update_lambda(aws, "latex"; S3Key="latexlambda.zip")
     end
@@ -60,6 +61,7 @@ end
 test_zip = base64encode(create_zip("document.tex" =>
                                    readstring("test_input.tex")))
 
+
 # Test latex in local docker image.
 function localtest()
     write("test_input.zip.base64", test_zip)
@@ -72,7 +74,7 @@ function localtest()
         with open('/var/host/test_output.json', 'w') as f:
             f.write(json.dumps(out))
         """
-    run(`docker run --rm -v $(pwd()):/var/host octech/lambdalatex python3 -c $pycmd`)
+    run(`docker run --security-opt seccomp:unconfined --rm -v $(pwd()):/var/host octech/lambdalatex strace -f -t -e trace=file -o /var/host/strace.out python3 -c $pycmd`)
     out = JSON.parse(readstring("test_output.json"))
     write("test_output_local.pdf", base64decode(out["output"]))
     write("test_output_local.stdout", out["stdout"])
@@ -81,7 +83,7 @@ end
 
 # Test latex on Lambda.
 function test()
-    out = invoke_lambda("latex"; input=test_zip)
+    @time out = invoke_lambda("latex"; input=test_zip)
     write("test_output_lambda.pdf", base64decode(out[:output]))
     write("test_output_lambda.stdout", out[:stdout])
 end
