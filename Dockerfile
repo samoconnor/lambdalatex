@@ -18,6 +18,7 @@ COPY texlive.profile /var/src/
 RUN tar xf install*.tar.gz
 RUN cd install-tl-* && \
     ./install-tl --profile ../texlive.profile
+    # --location http://ctan.mirror.norbert-ruehl.de/systems/texlive/tlnet
 
 
 ENV PATH=/var/task/texlive/2017/bin/x86_64-linux/:$PATH

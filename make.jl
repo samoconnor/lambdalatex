@@ -3,8 +3,9 @@ module MakeLatexLambda
 using JSON
 using AWSCore
 using AWSS3
+using AWSIAM
 using AWSLambda: create_lambda, update_lambda, lambda_configuration,
-                 invoke_lambda
+                 invoke_lambda, create_lambda_role
 using InfoZIP
 
 function all()
@@ -44,12 +45,25 @@ function deploy()
     aws[:lambda_bucket] = "octech.latexlambda.deploy.$n"
     s3_create_bucket(aws[:lambda_bucket])
     s3_put(aws[:lambda_bucket], "latexlambda.zip", read("latexlambda.zip"))
+
+    role = create_lambda_role(aws, "latex", """{
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": ["s3:GetObject", "s3:ListBucket", "s3:PutObject"],
+                "Resource": "*"
+            }
+        ]
+    }""")
+
     if lambda_configuration("latex") == nothing
         create_lambda(aws, "latex"; Runtime="python3.6",
                                     S3Key="latexlambda.zip",
-                                    MemorySize=1536)
+                                    MemorySize=1536,
+                                    Role=role)
     else
-        update_lambda(aws, "latex"; S3Key="latexlambda.zip")
+        update_lambda(aws, "latex"; S3Key="latexlambda.zip", Role=role)
     end
 end
 
@@ -61,7 +75,6 @@ end
 
 test_zip = base64encode(create_zip("document.tex" =>
                                    readstring("test_input.tex")))
-
 
 # Test latex in local docker image.
 function localtest()
@@ -88,6 +101,16 @@ function test()
     write("test_output_lambda.pdf", base64decode(out[:output]))
     write("test_output_lambda.stdout", out[:stdout])
 end
+
+# Test latex on Lambda.
+function s3test()
+    @time out = invoke_lambda("latex"; input_bucket="cinchtmp.tex",
+                                       input_key="Archive.zip",
+                                       output_bucket="cinchtmp.pdf",
+                                       output_key="test.pdf")
+    write("test_output_lambda.stdout", out[:stdout])
+end
+
 
 
 # Remove intermediate files.
