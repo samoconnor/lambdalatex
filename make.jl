@@ -51,7 +51,7 @@ function deploy()
         "Statement": [
             {
                 "Effect": "Allow",
-                "Action": ["s3:GetObject", "s3:ListBucket", "s3:PutObject"],
+                "Action": ["s3:GetObject", "s3:PutObject"],
                 "Resource": "*"
             }
         ]
